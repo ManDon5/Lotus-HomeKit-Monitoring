@@ -1,0 +1,32 @@
+name: Compile check
+
+on: [push, pull_request]
+env:
+  SKETCHES_REPORTS_PATH: sketches-reports
+  SKETCHES_REPORTS_ARTIFACT_NAME: sketches-reports
+jobs:
+   compile:
+      runs-on: ubuntu-latest
+      steps:
+         - name: Checkout
+           uses: actions/checkout@v3
+         - name: Compile
+           uses: arduino/compile-sketches@v1
+           with:
+              fqbn: esp32:esp32:esp32 https://raw.githubusercontent.com/espressif/arduino-esp32/gh-pages/package_esp32_index.json
+              sketch-paths: |
+                 - Lotus
+              libraries: |
+                 - name: HomeSpan
+                 - name: DallasTemperature
+                 - name: GxEPD2
+                 - source-url: https://github.com/enjoyneering/HTU2xD_SHT2x_Si70xx.git
+              cli-compile-flags: |
+                 - --warnings="none"
+              enable-deltas-report: true
+              sketches-report-path: ${{ env.SKETCHES_REPORTS_PATH }}
+         - name: Upload sketches report to workflow artifact
+           uses: actions/upload-artifact@v3
+           with:
+              name: ${{ env.SKETCHES_REPORTS_ARTIFACT_NAME }}
+              path: ${{ env.SKETCHES_REPORTS_PATH }}

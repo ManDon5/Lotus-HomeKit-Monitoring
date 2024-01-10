@@ -1,10 +1,11 @@
 #include <Wire.h>
 #include <HTU2xD_SHT2x_Si70xx.h>
 
+const float TEMPERATURE_DEVIATION = -1.6;
+
 struct DEV_EnvironmentalTemperatureSensor : Service::TemperatureSensor {
 
   const long TEMPERATURE_INTERVAL = 600000;  // 10 minutes
-  const float TEMPERATURE_DEVIATION = -0.7;
 
   HTU2xD_SHT2x_SI70xx ht2x = HTU2xD_SHT2x_SI70xx();
   SpanCharacteristic *temperatureCharacteristic;
@@ -61,6 +62,7 @@ struct DEV_EnvironmentalHumiditySensor : Service::HumiditySensor {
   const long HEATING_INTERVAL = 60000;                                 // 1 minute
   const long COOLING_INTERVAL = HUMIDITY_INTERVAL - HEATING_INTERVAL;  // 9 minutes
   const long COOLING_START_INTERVAL = 20000;                           // 20 seconds
+  const float HUMIDITY_DEVIATION = +8;
 
   HTU2xD_SHT2x_SI70xx ht2x = HTU2xD_SHT2x_SI70xx();
   SpanCharacteristic *humidityCharacteristic;
@@ -115,8 +117,8 @@ struct DEV_EnvironmentalHumiditySensor : Service::HumiditySensor {
   }
 
   int getCurrentCompensatedSensorHumidity() {
-    float temperature = ht2x.readTemperature();
-    return (int)ht2x.getCompensatedHumidity(temperature);
+    float temperature = ht2x.readTemperature() + TEMPERATURE_DEVIATION;
+    return (int)ht2x.getCompensatedHumidity(temperature) + HUMIDITY_DEVIATION;
   }
 
   void handleHeating(unsigned long currentMillis) {
